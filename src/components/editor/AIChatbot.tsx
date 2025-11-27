@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Send, Bot, User, Volume2 } from "lucide-react";
 
@@ -15,6 +14,9 @@ interface Message {
 export interface AIChatbotRef {
   askQuestion: (question: string) => void;
 }
+
+const GEMINI_API_KEY = "AIzaSyBl9Y_yCF4sochzaGEtKw26Q1ziEn9tpt4";
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 export const AIChatbot = forwardRef<AIChatbotRef>((_, ref) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -44,27 +46,41 @@ export const AIChatbot = forwardRef<AIChatbotRef>((_, ref) => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('coding-assistant', {
-        body: { message: messageToSend }
+      const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: messageToSend
+                }
+              ]
+            }
+          ]
+        })
       });
 
-      if (error) throw error;
-
-      if (data?.error) {
-        toast({
-          title: "Error",
-          description: data.error,
-          variant: "destructive",
-        });
-        return;
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
       }
 
-      setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+      const data = await response.json();
+      
+      if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+        const assistantMessage = data.candidates[0].content.parts[0].text;
+        setMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
+      } else {
+        throw new Error('Invalid response format from Gemini API');
+      }
     } catch (error) {
       console.error('Chat error:', error);
       toast({
         title: "Error",
-        description: "Failed to get response from AI assistant",
+        description: error instanceof Error ? error.message : "Failed to get response from AI assistant",
         variant: "destructive",
       });
     } finally {
@@ -96,7 +112,7 @@ export const AIChatbot = forwardRef<AIChatbotRef>((_, ref) => {
           AI Coding Assistant
         </h3>
         <p className="text-sm text-muted-foreground mt-1">
-          Ask me anything about coding
+          Powered by Gemini 2.5 Flash
         </p>
       </div>
 
@@ -187,3 +203,5 @@ export const AIChatbot = forwardRef<AIChatbotRef>((_, ref) => {
     </Card>
   );
 });
+
+AIChatbot.displayName = "AIChatbot";
