@@ -91,7 +91,6 @@ Editor features:
 - **Piston API** (or self-hosted Piston) for sandboxed code execution (Python / JS / C++)
 
 ### Database & Cache
-- PostgreSQL for persistent data (users, projects, usage)  
 - Redis for caching, rate-limits, and ephemeral data (optional)
 
 ### Storage
