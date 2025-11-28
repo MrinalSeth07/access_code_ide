@@ -91,8 +91,7 @@ Editor features:
 - **Piston API** (or self-hosted Piston) for sandboxed code execution (Python / JS / C++)
 
 ### Database & Cache
-- Redis for caching, rate-limits, and ephemeral data (optional)
-
+- Supabase for the tables , users data and other necessary confidential things .
 ### Storage
 - S3 / Supabase Storage for large assets, project zips, and audio files
 
