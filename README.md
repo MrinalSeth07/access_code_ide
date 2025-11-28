@@ -99,5 +99,5 @@ Editor features:
 
 ---
 
-## 🧱 System Diagram (high-level)
+
 
